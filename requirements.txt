@@ -1,0 +1,12 @@
+numpy
+pandas
+matplotlib
+scipy
+plotly
+seaborn
+jupyter
+notebook
+librosa
+beautifulsoup4
+selenium
+python-dotenv
