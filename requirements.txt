@@ -10,3 +10,4 @@ librosa
 beautifulsoup4
 selenium
 python-dotenv
+scikit-learn
