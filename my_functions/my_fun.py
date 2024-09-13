@@ -67,7 +67,7 @@ def load_spectrograms(filename):
     spect_dir = os.path.join(ASSETS_DIR, spect_file)
 
     # Comprobar que existe el archivo
-    if not os.path.exists(sepct_dir):
+    if not os.path.exists(spect_dir):
         print(f"Archivo {filename} no existe en la ruta predefinida")
         return None
 
