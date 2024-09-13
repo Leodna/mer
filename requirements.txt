@@ -12,3 +12,5 @@ selenium
 python-dotenv
 scikit-learn
 tensorflow
+pydot
+visualkeras
