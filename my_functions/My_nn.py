@@ -40,6 +40,7 @@ class My_nn:
             epochs=self.epochs,
             validation_data=(self.X_val, self.y_val),
             batch_size=self.batchsize,
+            verbose=1,
         )
 
         return history
@@ -73,7 +74,7 @@ class My_nn:
         plt.show()
 
     def evaluate(self):
-        loss, mae = self.model.evaluate(self.X_test, self.y_test)
+        loss, mae = self.model.evaluate(self.X_test, self.y_test, verbose=2)
         return loss, mae
 
     def recognize(self):
