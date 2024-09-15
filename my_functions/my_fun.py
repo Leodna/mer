@@ -10,7 +10,7 @@ import numpy as np
 from dotenv import load_dotenv
 
 
-def get_spectrogram(audio, fft_size=2048, hop_size=None, window_size=None):
+def get_spectrogram(audio, fft_size=2048, hop_size=None, window_size=None, to_db=True):
 
     if not window_size:
         window_size = fft_size
@@ -20,9 +20,29 @@ def get_spectrogram(audio, fft_size=2048, hop_size=None, window_size=None):
 
     D = librosa.stft(audio, n_fft=fft_size, hop_length=hop_size, win_length=window_size)
     D = np.abs(D)
-    S_db = librosa.amplitude_to_db(D, ref=np.max)
 
-    return S_db
+    S_db = librosa.amplitude_to_db(D, ref=np.max)
+    if to_db:
+        return S_db
+    else:
+        return D
+
+
+def get_chromagram(
+    audio, sr, fft_size=2048, hop_size=None, window_size=None, power_spectrum=False
+):
+    if not power_spectrum:
+        # Usar el espectro de magnitud
+        D = get_spectrogram(
+            audio=audio,
+            fft_size=fft_size,
+            hop_size=hop_size,
+            window_size=window_size,
+            to_db=False,
+        )
+        return librosa.feature.chroma_stft(S=D, sr=sr)
+    else:
+        return librosa.feature.chroma_stft(y=audio, sr=sr)
 
 
 def show_spectrogram(spectrogram, title):
