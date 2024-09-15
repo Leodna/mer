@@ -55,6 +55,15 @@ def show_spectrogram(spectrogram, title):
     plt.show()
 
 
+def show_chromagram(chroma, title):
+    fig, ax = plt.subplots(figsize=(12, 6))
+    img = librosa.display.specshow(chroma, x_axis="time", y_axis="chroma", ax=ax)
+    ax.set_title(f"{title}", fontsize=(20))
+    fig.colorbar(img, ax=ax, format=f"%0.2f")
+
+    plt.show()
+
+
 def show_distribution(data, title):
     sns.histplot(data, kde=True).set_title(f"{title}")
 
