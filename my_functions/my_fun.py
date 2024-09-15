@@ -29,8 +29,15 @@ def get_spectrogram(audio, fft_size=2048, hop_size=None, window_size=None, to_db
 
 
 def get_chromagram(
-    audio, sr, fft_size=2048, hop_size=None, window_size=None, power_spectrum=False
+    audio,
+    sr,
+    fft_size=2048,
+    hop_size=None,
+    window_size=None,
+    power_spectrum=False,
+    target_len=None,
 ):
+    chroma = None
     if not power_spectrum:
         # Usar el espectro de magnitud
         D = get_spectrogram(
@@ -40,9 +47,14 @@ def get_chromagram(
             window_size=window_size,
             to_db=False,
         )
-        return librosa.feature.chroma_stft(S=D, sr=sr)
+        chroma = librosa.feature.chroma_stft(S=D, sr=sr)
     else:
-        return librosa.feature.chroma_stft(y=audio, sr=sr)
+        chroma = librosa.feature.chroma_stft(y=audio, sr=sr)
+
+    if target_len:
+        chroma = adjust_spectrogram(chroma, target_len)
+
+    return chroma
 
 
 def show_spectrogram(spectrogram, title):
