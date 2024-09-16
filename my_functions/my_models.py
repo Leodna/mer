@@ -3,6 +3,52 @@ from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 
+from keras.applications.vgg16 import VGG16
+from keras.applications.vgg16 import preprocess_input
+from keras.preprocessing.image import ImageDataGenerator
+
+
+def vgg16_svm():
+    base_model = VGG16(
+        weights="imagenet", include_top=False, pooling="avg", input_shape=(224, 224, 3)
+    )
+    inputs = Input((224, 224, 3))
+    prep_input = preprocess_input(inputs)
+    base_outputs = base_model(prep_input)
+
+    return Model(inputs, base_outputs, name="feature_extractor")
+
+
+def vgg16(trainable=False):
+    base_model = VGG16(
+        weights="imagenet", include_top=False, pooling="avg", input_shape=(224, 224, 3)
+    )
+
+    if trainable:
+        for layer in base_model.layers:
+            layer.trainable = True
+
+    inputs = Input((224, 224, 3))
+    prep_input = preprocess_input(inputs)
+    base_outputs = base_model(prep_input)
+
+    x = layers.Flatten()(base_outputs)
+    x = layers.Dense(256, activation="relu")(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Dense(128, activation="relu")(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Dense(64, activation="relu")(x)
+
+    outputs = layers.Dense(2, activation="linear")(x)
+
+    model = Model(inputs=inputs, outputs=outputs)
+
+    model.compile(loss="mse", optimizer=Adam(learning_rate=0.001), metrics=["mae"])
+
+    model.summary()
+
+    return model
+
 
 def modelo1():
     inputs = Input(shape=(513, 1671, 1))
