@@ -6,6 +6,7 @@ import os
 import pickle
 import pandas as pd
 import numpy as np
+import cv2
 
 from dotenv import load_dotenv
 
@@ -129,3 +130,19 @@ def adjust_spectrogram(spectrogram, target_len):
 def show_audio_signal(audio, title, color="#8839ef"):
     pd.Series(audio).plot(figsize=(10, 5), lw=1, title=f"{title}", color=color)
     plt.show()
+
+
+def redimensionar(img, resize):
+    img_resized = cv2.resize(img, resize)
+
+    return img_resized
+
+
+def resize_spectrogramas(spectrograms, resize):
+    spec_res = []
+
+    for img in spectrograms:
+        img_res = redimensionar(img, resize)
+        spec_res.append(img_res)
+
+    return np.array(spec_res)
