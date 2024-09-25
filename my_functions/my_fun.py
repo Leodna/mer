@@ -7,6 +7,7 @@ import pickle
 import pandas as pd
 import numpy as np
 import cv2
+import soundfile as sf
 
 from dotenv import load_dotenv
 
@@ -146,3 +147,95 @@ def resize_spectrogramas(spectrograms, resize):
         spec_res.append(img_res)
 
     return np.array(spec_res)
+
+
+def stretching(audio, tst):
+    return librosa.effects.time_stretch(audio, rate=tst)
+
+
+def shifting(audio, tsh, sr):
+    shift_sample = int(tsh * sr)
+    return np.roll(audio, shift_sample)
+
+
+def data_augmentation(
+    audio_files, labels, length, tsh=5, tst_list=[0.81, 0.93, 1.07, 1.23], sr=None
+):
+    if not load_dotenv:
+        print(f"No se encontro archivo de variables de entorno")
+        return None
+
+    AUDIO_DIR = os.getenv("PMEMO_AUDIO")
+    if not os.path.exists(AUDIO_DIR):
+        print(f"La ruta de audios eespecificada no existe")
+        return None
+
+    AUG_DIR = os.path.join(AUDIO_DIR, "augmented")
+    if not os.path.exists(AUG_DIR):
+        print(f"Creando carpeta {os.path.basename(AUG_DIR)} . . .")
+        os.mkdir(AUG_DIR)
+
+    if not sr:
+        sr = 22050
+
+    input_len = sr * length
+
+    music_ids = []
+    valence = []
+    arousal = []
+    is_augmented = []
+    comments = []
+    audio_dir = []
+
+    for r, audio in enumerate(audio_files):
+        audio_name = os.path.basename(audio)
+        current_id = labels.iloc[r].musicId
+        current_arousal = labels.iloc[r]["Arousal"]
+        current_valence = labels.iloc[r]["Valence"]
+
+        music_ids.append(current_id)
+        valence.append(current_valence)
+        arousal.append(current_arousal)
+        is_augmented.append(False)
+        comments.append("Source file")
+        audio_dir.append(audio)
+
+        y, sr = librosa.load(audio, offset=0, duration=length)
+        for i, tst in enumerate(tst_list):
+            aug_name = f"{audio_name.split('.')[0]}_tst{i}.mp3"
+            aug_dir = os.path.join(AUG_DIR, aug_name)
+            aug_audio = stretching(y, tst)
+
+            if len(aug_audio) > input_len:
+                aug_audio = aug_audio[:input_len]
+
+            sf.write(aug_dir, aug_audio, sr)
+            music_ids.append(current_id)
+            valence.append(current_valence)
+            arousal.append(current_arousal)
+            is_augmented.append(True)
+            comments.append(f"Time stretching {tst} seconds")
+            audio_dir.append(aug_dir)
+
+        aug_name = f"{audio_name.split('.')[0]}_tsh{tsh}.mp3"
+        aug_dir = os.path.join(AUG_DIR, aug_name)
+        aug_audio = shifting(y, tsh, sr)
+
+        sf.write(aug_dir, aug_audio, sr)
+        music_ids.append(current_id)
+        valence.append(current_valence)
+        arousal.append(current_arousal)
+        is_augmented.append(True)
+        comments.append(f"Time shifting {tsh} seconds")
+        audio_dir.append(aug_dir)
+
+    new_cols = {
+        "musicId": music_ids,
+        "Arousal(mean)": arousal,
+        "Valence(mean)": valence,
+        "isAugmented": is_augmented,
+        "info": comments,
+        "audioDir": audio_dir,
+    }
+
+    return pd.DataFrame(new_cols)

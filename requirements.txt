@@ -16,3 +16,4 @@ pydot
 visualkeras
 opencv-python
 opencv-python-headless
+soundfile
